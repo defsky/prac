@@ -23,9 +23,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var withA bool
-var testCount int
-var columnCount int
+var withA, withBorrow bool
+var testCount, columnCount, maxNumber int
 
 // testCmd represents the test command
 var testCmd = &cobra.Command{
@@ -47,7 +46,9 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	testCmd.Flags().BoolVarP(&withA, "answer", "a", false, "generate expression with answer")
+	testCmd.Flags().BoolVarP(&withA, "answer", "a", false, "generate subjects with answer")
+	testCmd.Flags().BoolVarP(&withBorrow, "borrow", "b", false, "generate subjects only with borrow and give")
+	testCmd.Flags().IntVarP(&maxNumber, "max", "m", 20, "specify max number in subjects")
 	testCmd.Flags().IntVarP(&testCount, "number", "n", 20, "specify count number for test subjects")
 	testCmd.Flags().IntVarP(&columnCount, "columns", "c", 5, "specify column count for print out")
 }
@@ -58,28 +59,52 @@ func testCmdHandler(cmd *cobra.Command, args []string) {
 	addMap := make(map[string]bool)
 	subMap := make(map[string]bool)
 
-	for i := 2; i < 10; i++ {
-		for j := 2; j < 10; j++ {
+	addedNumber := maxNumber
+	addNumber := maxNumber - 10
+	if withBorrow {
+		addedNumber = maxNumber - 11
+		addNumber = maxNumber - 11
+	}
+	for i := 1; i <= addedNumber; i++ {
+		if i == 10 {
+			continue
+		}
+		for j := 2; j <= addNumber; j++ {
+			if j == 10 {
+				continue
+			}
 			sum := i + j
+			if sum > 20 {
+				continue
+			}
 			if sum > 10 {
 				if withA {
-					addMap[fmt.Sprintf("%d + %d = %d", i, j, sum)] = true
+					addMap[fmt.Sprintf("%-2d + %-2d = %-2d", i, j, sum)] = true
 				} else {
-					addMap[fmt.Sprintf("%d + %d = ?", i, j)] = true
+					addMap[fmt.Sprintf("%-2d + %-2d = %-2s", i, j, "?")] = true
 				}
 			}
 		}
 	}
 
-	for i := 11; i < 20; i++ {
-		for j := 2; j < 10; j++ {
+	subNumber := maxNumber
+	if withBorrow {
+		subNumber = maxNumber - 11
+	}
+
+	for i := 11; i <= maxNumber; i++ {
+		for j := 2; j <= subNumber; j++ {
 			sub := i - j
-			if sub < 10 {
-				if withA {
-					subMap[fmt.Sprintf("%d - %d = %d", i, j, sub)] = true
-				} else {
-					subMap[fmt.Sprintf("%d - %d = ?", i, j)] = true
-				}
+			if sub <= 0 {
+				continue
+			}
+			if withBorrow && sub >= 10 {
+				continue
+			}
+			if withA {
+				subMap[fmt.Sprintf("%-2d - %-2d = %-2d", i, j, sub)] = true
+			} else {
+				subMap[fmt.Sprintf("%-2d - %-2d = %-2s", i, j, "?")] = true
 			}
 		}
 	}
@@ -110,7 +135,7 @@ func testCmdHandler(cmd *cobra.Command, args []string) {
 			if n%columnCount == 0 && n != 0 {
 				fmt.Print("\n\n")
 			}
-			fmt.Printf("%12s", subject)
+			fmt.Printf("%16s", subject)
 			n++
 		}
 
