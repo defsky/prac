@@ -95,7 +95,7 @@ func testCmdHandler(cmd *cobra.Command, args []string) {
 	for i := 11; i <= maxNumber; i++ {
 		for j := 2; j <= subNumber; j++ {
 			sub := i - j
-			if sub <= 0 {
+			if sub <= 0 || sub == 10 || j == 10 {
 				continue
 			}
 			if withBorrow && sub >= 10 {
